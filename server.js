@@ -51,9 +51,9 @@ app.post('/api/alarm', async (req, res) => {
       priority: Number(priority),
     };
 
-    // Emergency priority (2) requires retry + expire
+    // Emergency priority (2) requires retry + expire (Pushover minimum retry is 30 sec)
     if (Number(priority) === 2) {
-      payload.retry  = Number(retry);
+      payload.retry  = Math.max(Number(retry) || 30, 30);
       payload.expire = Number(expire);
     }
 

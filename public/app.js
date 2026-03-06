@@ -20,6 +20,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     radio.addEventListener('change', toggleEmergencySettings);
   });
   toggleEmergencySettings();
+
+  // Bind buttons explicitly so they work even if inline handlers fail
+  const emergencyBtn = document.getElementById('emergencyBtn');
+  const sendBtn = document.getElementById('sendBtn');
+  if (emergencyBtn) emergencyBtn.addEventListener('click', (e) => { e.preventDefault(); triggerEmergency(); });
+  if (sendBtn) sendBtn.addEventListener('click', (e) => { e.preventDefault(); sendCustomAlarm(); });
 });
 
 // ─── Toast System ─────────────────────────────────────────────────────────────
@@ -80,7 +86,8 @@ async function sendCustomAlarm() {
   const title    = document.getElementById('alarmTitle').value.trim()   || 'Alarm';
   const message  = document.getElementById('alarmMessage').value.trim() || 'Alarm triggered!';
   const priority = Number(document.querySelector('input[name="priority"]:checked')?.value ?? 2);
-  const retry    = Number(document.getElementById('retryEvery').value)  || 30;
+  const retryRaw = Number(document.getElementById('retryEvery').value)  || 30;
+  const retry    = Math.min(30, Math.max(1, retryRaw));  // allow 1–30 sec in UI
   const expire   = Number(document.getElementById('expireAfter').value) || 3600;
 
   await doSendAlarm({
@@ -176,7 +183,10 @@ async function doSendAlarm({ title, message, sound, priority, retry, expire, isE
       throw new Error(data.error || 'Unknown error');
     }
   } catch (err) {
-    showToast('Failed to send alarm: ' + err.message, 'error', 6000);
+    const msg = err.message === 'Failed to fetch' || err.name === 'TypeError'
+      ? 'Cannot reach server. Start it with "npm start" and open http://localhost:' + (window.location.port || '3000')
+      : err.message;
+    showToast('Failed to send alarm: ' + msg, 'error', 6000);
     setStatus('Failed to send alarm', 'error');
     addToLog(title, message, sound, priority, false);
     console.error('Alarm error:', err);

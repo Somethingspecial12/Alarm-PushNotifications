@@ -40,7 +40,7 @@
         Sends a <strong>repeating siren alarm</strong> to your phone every
         <strong>30 seconds</strong> until you tap <em>Acknowledge</em> in the Pushover app.
       </p>
-      <button class="btn-emergency" id="emergencyBtn" onclick="triggerEmergency()">
+      <button type="button" class="btn-emergency" id="emergencyBtn" onclick="triggerEmergency()">
         <span id="emergencyBtnText">TRIGGER EMERGENCY ALARM</span>
         <span class="btn-loader" id="emergencyLoader"></span>
       </button>
@@ -121,7 +121,7 @@
         <div class="form-row">
           <div class="form-group half">
             <label for="retryEvery">Retry Every (sec)</label>
-            <input type="number" id="retryEvery" value="30" min="30" max="3600" />
+            <input type="number" id="retryEvery" value="30" min="1" max="30" title="1–30 sec (Pushover minimum is 30 sec)" />
           </div>
           <div class="form-group half">
             <label for="expireAfter">Stop After (sec)</label>
@@ -130,7 +130,7 @@
         </div>
       </div>
 
-      <button class="btn-send" id="sendBtn" onclick="sendCustomAlarm()">
+      <button type="button" class="btn-send" id="sendBtn" onclick="sendCustomAlarm()">
         <span class="btn-icon">&#128242;</span>
         <span id="sendBtnText">Send Alarm to Phone</span>
         <span class="btn-loader" id="sendLoader"></span>
