@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pushover Alarm Center</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="bg-blob blob-red"></div>
+  <div class="bg-blob blob-orange"></div>
+  <div class="bg-blob blob-purple"></div>
+
+  <div class="container">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-siren" id="sirenIcon">&#128680;</div>
+      <h1 class="header-title">Alarm Center</h1>
+      <p class="header-subtitle">Trigger loud phone alarms instantly via Pushover</p>
+    </header>
+
+    <!-- Credential Warning Banner -->
+    <div class="alert alert-warn" id="credWarn" style="display:none;">
+      &#9888; Pushover credentials not configured.
+      Run <code>node setup.js</code> in the project folder, then restart the server.
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">Ready to trigger alarm</span>
+    </div>
+
+    <!-- EMERGENCY ONE-CLICK BUTTON -->
+    <div class="card card-emergency">
+      <div class="emergency-label">&#128680; EMERGENCY ALARM</div>
+      <p class="emergency-desc">
+        Sends a <strong>repeating siren alarm</strong> to your phone every
+        <strong>30 seconds</strong> until you tap <em>Acknowledge</em> in the Pushover app.
+      </p>
+      <button class="btn-emergency" id="emergencyBtn" onclick="triggerEmergency()">
+        <span id="emergencyBtnText">TRIGGER EMERGENCY ALARM</span>
+        <span class="btn-loader" id="emergencyLoader"></span>
+      </button>
+      <div class="cancel-bar" id="cancelBar" style="display:none;">
+        <span>&#128276; Emergency alarm is active and repeating...</span>
+        <button class="btn-cancel" onclick="cancelAlarm()">&#128263; Cancel Alarm</button>
+      </div>
+    </div>
+
+    <!-- CUSTOM ALARM -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">&#127899;</span>
+        <h2>Custom Alarm</h2>
+      </div>
+
+      <div class="form-group">
+        <label for="alarmTitle">Title</label>
+        <input type="text" id="alarmTitle" value="Alert from Website" placeholder="Alarm title..." />
+      </div>
+
+      <div class="form-group">
+        <label for="alarmMessage">Message</label>
+        <textarea id="alarmMessage" rows="3" placeholder="Alarm message...">The alarm button was pressed!</textarea>
+      </div>
+
+      <!-- Sound Selector -->
+      <div class="form-group">
+        <label>Alarm Sound</label>
+        <div class="sound-grid" id="soundGrid">
+          <button class="sound-btn active" data-sound="siren"       onclick="selectSound(this)">&#128680; Siren</button>
+          <button class="sound-btn"        data-sound="alien"       onclick="selectSound(this)">&#128125; Alien</button>
+          <button class="sound-btn"        data-sound="bike"        onclick="selectSound(this)">&#128276; Bike</button>
+          <button class="sound-btn"        data-sound="bugle"       onclick="selectSound(this)">&#128239; Bugle</button>
+          <button class="sound-btn"        data-sound="cashregister" onclick="selectSound(this)">&#128176; Cash</button>
+          <button class="sound-btn"        data-sound="classical"   onclick="selectSound(this)">&#127931; Classical</button>
+          <button class="sound-btn"        data-sound="cosmic"      onclick="selectSound(this)">&#127756; Cosmic</button>
+          <button class="sound-btn"        data-sound="falling"     onclick="selectSound(this)">&#127810; Falling</button>
+          <button class="sound-btn"        data-sound="gamelan"     onclick="selectSound(this)">&#127925; Gamelan</button>
+          <button class="sound-btn"        data-sound="incoming"    onclick="selectSound(this)">&#128222; Incoming</button>
+          <button class="sound-btn"        data-sound="magic"       onclick="selectSound(this)">&#10024; Magic</button>
+          <button class="sound-btn"        data-sound="mechanical"  onclick="selectSound(this)">&#9881; Mechanical</button>
+          <button class="sound-btn"        data-sound="pianobar"    onclick="selectSound(this)">&#127929; Piano Bar</button>
+          <button class="sound-btn"        data-sound="tugboat"     onclick="selectSound(this)">&#128674; Tugboat</button>
+          <button class="sound-btn"        data-sound="none"        onclick="selectSound(this)">&#128263; Silent</button>
+        </div>
+      </div>
+
+      <!-- Priority Selector -->
+      <div class="form-group">
+        <label>Priority Level</label>
+        <div class="priority-row">
+          <label class="priority-option">
+            <input type="radio" name="priority" value="-2" />
+            <span class="priority-pill p-lowest">Lowest<br /><small>No sound</small></span>
+          </label>
+          <label class="priority-option">
+            <input type="radio" name="priority" value="-1" />
+            <span class="priority-pill p-low">Low<br /><small>Quiet</small></span>
+          </label>
+          <label class="priority-option">
+            <input type="radio" name="priority" value="0" />
+            <span class="priority-pill p-normal">Normal<br /><small>Default</small></span>
+          </label>
+          <label class="priority-option">
+            <input type="radio" name="priority" value="1" />
+            <span class="priority-pill p-high">High<br /><small>Bypass DND</small></span>
+          </label>
+          <label class="priority-option">
+            <input type="radio" name="priority" value="2" checked />
+            <span class="priority-pill p-emergency">Emergency<br /><small>Repeating!</small></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Emergency retry/expire settings -->
+      <div class="emergency-settings" id="emergencySettings">
+        <div class="form-row">
+          <div class="form-group half">
+            <label for="retryEvery">Retry Every (sec)</label>
+            <input type="number" id="retryEvery" value="30" min="30" max="3600" />
+          </div>
+          <div class="form-group half">
+            <label for="expireAfter">Stop After (sec)</label>
+            <input type="number" id="expireAfter" value="3600" min="60" max="86400" />
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-send" id="sendBtn" onclick="sendCustomAlarm()">
+        <span class="btn-icon">&#128242;</span>
+        <span id="sendBtnText">Send Alarm to Phone</span>
+        <span class="btn-loader" id="sendLoader"></span>
+      </button>
+    </div>
+
+    <!-- QUICK PRESETS -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-icon">&#9889;</span>
+        <h2>Quick Presets</h2>
+      </div>
+      <p class="section-desc">One-tap alarm presets for common scenarios</p>
+      <div class="preset-grid">
+        <button class="preset-btn preset-red"    onclick="sendPreset('fire')">&#128293; Fire Alert</button>
+        <button class="preset-btn preset-orange" onclick="sendPreset('intruder')">&#127968; Intruder Alert</button>
+        <button class="preset-btn preset-yellow" onclick="sendPreset('server')">&#128421; Server Down</button>
+        <button class="preset-btn preset-blue"   onclick="sendPreset('reminder')">&#9200; Reminder</button>
+      </div>
+    </div>
+
+    <!-- ALARM LOG -->
+    <div class="card" id="logCard" style="display:none;">
+      <div class="card-header">
+        <span class="card-icon">&#128203;</span>
+        <h2>Alarm History</h2>
+        <button class="btn-clear" onclick="clearLog()">Clear</button>
+      </div>
+      <div id="alarmLog"></div>
+    </div>
+
+    <!-- SETUP GUIDE -->
+    <div class="card card-guide">
+      <div class="card-header">
+        <span class="card-icon">&#128241;</span>
+        <h2>Setup Guide</h2>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Create a Pushover Account</strong>
+            <p>Sign up at <a href="https://pushover.net" target="_blank">pushover.net</a> - 30-day free trial, then a $5 one-time fee</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Get Your User Key and App Token</strong>
+            <p>Copy your User Key from the dashboard, then create an application to get an App Token</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>Run the Setup Script</strong>
+            <p>In your terminal inside the project folder: <code>node setup.js</code></p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Install Pushover App on Your Phone</strong>
+            <div class="store-links">
+              <a href="https://pushover.net/clients/android" target="_blank" class="store-btn android">Google Play</a>
+              <a href="https://pushover.net/clients/ios"     target="_blank" class="store-btn ios">App Store</a>
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div class="step-body">
+            <strong>Press the Button and Brace Yourself!</strong>
+            <p>The siren will play and repeat until you tap Acknowledge in the Pushover app</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      Powered by <a href="https://pushover.net" target="_blank">Pushover</a>
+      - Emergency alarm repeats every 30 sec until acknowledged
+    </footer>
+
+  </div>
+
+  <div id="toast-container"></div>
+  <script src="app.js"></script>
+</body>
+</html>
