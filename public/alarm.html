@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emergency Alarm</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #0d0d1a;
+      color: #f1f1f6;
+      padding: 24px;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 8px;
+      color: #fca5a5;
+    }
+    p {
+      color: #9ca3af;
+      font-size: 0.9rem;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    .btn-stop {
+      width: 100%;
+      max-width: 320px;
+      padding: 24px 32px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow: 0 8px 32px rgba(239, 68, 68, 0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-stop:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(239, 68, 68, 0.5);
+    }
+    .btn-stop:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <h1>Emergency alarm active</h1>
+  <p>Tap the button below to stop the alarm sound.</p>
+  <button type="button" class="btn-stop" id="stopBtn">STOP ALARM</button>
+  <p id="audioError" style="display:none; margin-top:16px; color:#fca5a5; font-size:0.85rem;">Add <code>emergency_alarm.mp3</code> to the <code>public/sounds/</code> folder.</p>
+
+  <audio id="alarm" autoplay loop>
+    <source src="/sounds/emergency_alarm.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    (function () {
+      var alarm = document.getElementById('alarm');
+      var stopBtn = document.getElementById('stopBtn');
+      var audioError = document.getElementById('audioError');
+
+      function stopAlarm() {
+        alarm.pause();
+        alarm.currentTime = 0;
+        stopBtn.textContent = 'Alarm stopped';
+        stopBtn.disabled = true;
+      }
+
+      stopBtn.addEventListener('click', stopAlarm);
+
+      alarm.addEventListener('error', function () {
+        audioError.style.display = 'block';
+      });
+
+      alarm.play().catch(function () {
+        // Autoplay blocked by browser; playback may start after user interaction
+      });
+    })();
+  </script>
+</body>
+</html>

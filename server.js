@@ -17,6 +17,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// ─── Emergency alarm page (auto-plays custom MP3, loop until user stops) ─────
+app.get('/alarm', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'alarm.html'));
+});
+
 // ─── POST /api/alarm  ─────────────────────────────────────────────────────────
 // Sends a Pushover notification with configurable priority & sound
 app.post('/api/alarm', async (req, res) => {
@@ -27,6 +32,8 @@ app.post('/api/alarm', async (req, res) => {
     priority = 2,        // 2 = Emergency (repeats until acknowledged)
     retry    = 60,       // seconds between retries (required if priority=2)
     expire   = 3600,     // seconds before giving up (required if priority=2)
+    url,                 // optional: link in notification (e.g. alarm page)
+    url_title,            // optional: link label in Pushover
   } = req.body;
 
   const appToken = process.env.PUSHOVER_APP_TOKEN;
@@ -55,6 +62,14 @@ app.post('/api/alarm', async (req, res) => {
     if (Number(priority) === 2) {
       payload.retry  = Math.max(Number(retry) || 30, 30);
       payload.expire = Number(expire);
+    }
+
+    // Optional: link shown in notification (e.g. to alarm page that plays custom MP3)
+    if (url && typeof url === 'string' && url.trim()) {
+      payload.url = url.trim();
+      if (url_title && typeof url_title === 'string' && url_title.trim()) {
+        payload.url_title = url_title.trim();
+      }
     }
 
     const response = await axios.post(

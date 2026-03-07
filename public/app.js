@@ -69,15 +69,19 @@ function toggleEmergencySettings() {
 }
 
 // ─── TRIGGER EMERGENCY (one-click big red button) ─────────────────────────────
+// Sends emergency notification with link to alarm page that plays custom MP3 until stopped
 async function triggerEmergency() {
+  const alarmPageUrl = window.location.origin + '/alarm';
   await doSendAlarm({
-    title:    'EMERGENCY ALARM',
-    message:  'Emergency alarm triggered from the website!',
-    sound:    'siren',
-    priority: 2,
-    retry:    30,
-    expire:   3600,
+    title:       'EMERGENCY ALARM',
+    message:     'Emergency alarm triggered! Tap the link below to open the alarm page and stop the sound.',
+    sound:       'siren',
+    priority:    2,
+    retry:       30,
+    expire:      3600,
     isEmergency: true,
+    url:         alarmPageUrl,
+    url_title:   'Open alarm page — tap to stop',
   });
 }
 
@@ -148,7 +152,7 @@ async function cancelAlarm() {
 }
 
 // ─── CORE SEND FUNCTION ───────────────────────────────────────────────────────
-async function doSendAlarm({ title, message, sound, priority, retry, expire, isEmergency }) {
+async function doSendAlarm({ title, message, sound, priority, retry, expire, isEmergency, url, url_title }) {
   // Determine which button to lock
   const isEmergencyBtn = isEmergency && title === 'EMERGENCY ALARM';
   const btn     = document.getElementById(isEmergencyBtn ? 'emergencyBtn' : 'sendBtn');
@@ -160,11 +164,15 @@ async function doSendAlarm({ title, message, sound, priority, retry, expire, isE
   btnText.textContent  = 'Sending alarm...';
   setStatus('Sending alarm to phone...', 'loading');
 
+  const body = { title, message, sound, priority, retry, expire };
+  if (url) body.url = url;
+  if (url_title) body.url_title = url_title;
+
   try {
     const res  = await fetch('/api/alarm', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ title, message, sound, priority, retry, expire }),
+      body:    JSON.stringify(body),
     });
     const data = await res.json();
 
